@@ -1,4 +1,4 @@
-from random import random
+import random
 
 import numpy as np
 
@@ -54,12 +54,11 @@ class RLUTTTPlayer:
                 choices = {}
                 legal_space = board.get_legal_moves()
                 for lx, ly in legal_space:
-                    area = board.get_area(lx, ly)
                     possible = Board(board.n)
                     possible.copy(board)
                     possible.execute_move((lx, ly), 1)
-                    choices[(lx, ly)] = self.learningAlgo.getBoardStateValue(self.player, board,
-                                                                             possible.pieces.reshape(81, ))
+                    choices[(lx, ly)] = self.learningAlgo.getBoardStateValue(1, board,
+                                                                             possible.pieces.reshape((81, )))
                 pickOne = max(choices, key=choices.get)
             else:
                 legal = board.get_legal_moves()

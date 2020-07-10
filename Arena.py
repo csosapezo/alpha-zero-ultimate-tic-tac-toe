@@ -85,6 +85,7 @@ class Arena():
                 twoWon += 1
             else:
                 draws += 1
+            print(oneWon, twoWon, draws)
 
         self.player1, self.player2 = self.player2, self.player1
 
@@ -96,5 +97,6 @@ class Arena():
                 twoWon += 1
             else:
                 draws += 1
+            print(oneWon, twoWon, draws)
 
         return oneWon, twoWon, draws

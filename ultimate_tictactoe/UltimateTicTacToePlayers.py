@@ -1,6 +1,9 @@
-from random import random
+import random
 
 import numpy as np
+
+from ultimate_tictactoe.UltimateTicTacToeGame import UltimateTicTacToeGame
+from ultimate_tictactoe.UltimateTicTacToeLogic import Board
 
 
 class RandomUltimateTictacToePlayer():
@@ -25,17 +28,20 @@ def ucb(n, C=1.4):
 class MCT_Node:
     """Node in the Monte Carlo search tree, keeps track of the children states."""
 
-    def __init__(self, parent=None, state=None, U=0, N=0):
+    def __init__(self, parent=None, state=None, U=0, N=0, player=1):
         self.__dict__.update(parent=parent, state=state, U=U, N=N)
         self.children = {}
         self.actions = None
+        self.player = player
 
 
 class MonteCarloTreeSearchPlayer:
-    def __init__(self, n=25):
+    def __init__(self, game, n=50):
         self.n = n
+        self.player = 1
+        self.game = game
 
-    def play(self, state, game):
+    def play(self, state):
         def select(n):
             """select a leaf node in the tree"""
             if n.children:
@@ -45,18 +51,24 @@ class MonteCarloTreeSearchPlayer:
 
         def expand(n):
             """expand the leaf node by adding all its children states"""
-            if not n.children and not game.getGameEnded(game, 1):
-                n.children = {MCT_Node(state=game.getNextState(n.state, action)[0], parent=n): action
-                              for action in game.getValidMoves(n.state, 1)}
+            if not n.children and not self.game.getGameEnded(state, 1):
+                n.children = {
+                    MCT_Node(state=self.game.getNextState(n.state, n.player, self.game.N * x + y)[0], parent=n,
+                             player=self.game.getNextState(n.state, n.player, self.game.N * x + y)[1]):
+                        self.game.N * x + y for x, y in n.state.get_legal_moves()}
             return select(n)
 
-        def simulate(game, state):
+        def simulate(state, player):
             """simulate the utility of current state by random picking a step"""
-            player = game.to_move(state)
-            while not game.terminal_test(state):
-                action = random.choice(list(game.actions(state)))
-                state = game.result(state, action)
-            v = game.utility(state, player)
+            i = 1
+            while not self.game.getGameEnded(state, player):
+                action = np.random.randint(self.game.getActionSize())
+                valids = self.game.getValidMoves(state, player)
+                while valids[action] != 1:
+                    action = np.random.randint(self.game.getActionSize())
+                state, player = self.game.getNextState(state, player, action)
+                i = i + 1
+            v = self.game.getGameEnded(state, player)
             return -v
 
         def backprop(n, utility):
@@ -74,7 +86,7 @@ class MonteCarloTreeSearchPlayer:
         for _ in range(self.n):
             leaf = select(root)
             child = expand(leaf)
-            result = simulate(game, child.state)
+            result = simulate(child.state, child.player)
             backprop(child, result)
 
         max_state = max(root.children, key=lambda p: p.N)

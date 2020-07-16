@@ -1,7 +1,3 @@
-import os
-
-os.environ["KERAS_BACKEND"] = "plaidml.keras.backend"
-
 from Coach import Coach
 from ultimate_tictactoe.UltimateTicTacToeGame import UltimateTicTacToeGame
 from ultimate_tictactoe.keras.NNet import NNetWrapper as nn
